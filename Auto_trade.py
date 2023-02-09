@@ -238,7 +238,8 @@ class MyWindow(QMainWindow):
         dfResult = pd.concat([dfResult, newResult], ignore_index=True)
         return dfResult
 
-
+    def test(self):
+        print("이상한거 뜨는데?")
     # 종료 메세지 박스 띄우기
     def quitDialog(self):
         pass
