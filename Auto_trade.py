@@ -24,11 +24,11 @@ class MyWindow(QMainWindow):
     def __init__(self):
 
         ####### 계좌 관련 변수
-        self.account_num = None
         self.deposit = 0
+        self.out_deposit = 0
+        self.account_num = None
         self.use_money = 0
         self.use_money_percent = 0
-        self.output_deposit = 0
         self.account_list = []
         self.account_stock_dict = {}    # 보유종목
 
@@ -238,8 +238,6 @@ class MyWindow(QMainWindow):
         dfResult = pd.concat([dfResult, newResult], ignore_index=True)
         return dfResult
 
-    def test(self):
-        print("이상한거 뜨는데?")
     # 종료 메세지 박스 띄우기
     def quitDialog(self):
         pass
@@ -275,9 +273,9 @@ class MyWindow(QMainWindow):
         if rqname == "opw00001_req":
             print("rqName = opw00001_req")
             deposit = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "예수금")
-            self.deposit = int(deposit)
-            output_deposit = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "출금가능금액")
-            self.output_deposit = int(output_deposit)
+            self.deposit = int(self.deposit)
+            out_deposit = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "출금가능금액")
+            self.out_deposit = int(self.out_deposit)
 
         # 총매입금액
         if rqname == "opw00018_req":
@@ -377,8 +375,8 @@ class MyWindow(QMainWindow):
         self.detail_account_mystock_loop.exec()
         print("detail_account_mystock 종료")
 
-    def detail_account_info(self, account, sPrevNext = "0"):
-        print("detail_account_info 시작")
+    def get_deposit(self, account, sPrevNext = "0"):
+        print("get_deposit 시작")
         self.kiwoom.dynamicCall("SetInputValue(QString, QString)", "계좌번호", account)
         self.kiwoom.dynamicCall("SetInputValue(QString, QString)", "비밀번호", "0000")
         self.kiwoom.dynamicCall("SetInputValue(QString, QString)", "비밀번호입력매체구분", "구분")
@@ -390,18 +388,18 @@ if __name__ == "__main__":
         app = QApplication(sys.argv)
         myWindow = MyWindow()
 
-
         # 변수저장
         account_num = "8038151811"
         buy_price = 500000
         file_names = ["C:/Users/A/Desktop/주식자료/성장주.xlsx","C:/Users/A/Desktop/주식자료/수익성이 좋은 기업.xlsx"]
         sheet_name = myWindow.calculateBusinessDay(-1)
+
         df_targetCodesInfo = pd.DataFrame([])
         conditionName = ""
         processStage = ""
         myWindow.show()
         # 키움 로그인
-        # myWindow.kiwoom_login()
+        myWindow.kiwoom_login()
 
         # # 조건식 불러오기
         # conditionList = myWindow.load_conditionList().split(";")
@@ -431,6 +429,16 @@ if __name__ == "__main__":
 
         # 매수 코드 대상 df 받아오기
         # 대상 파일들의 최근 종목코드 목록을 concat, 종목코드 의 중복제거
+
+        # 계좌정보 가져오기 (계좌)
+        print(myWindow.get_account_info())
+        
+        # 예수금 가져오기
+        myWindow.get_deposit('8038151811')
+        print("예수금 : {0}, 출금가능금액 : {1}".format("deposit", "out_deposit"))
+
+        myWindow.detail_account_mystock("8038151811", 0)  # 계좌의 보유종목 들고오기
+
         for file_name in file_names:
             if df_targetCodesInfo.empty:
                 df_targetCodesInfo = myWindow.readExcelToDataFrame(file_name, sheet_name)
@@ -438,13 +446,11 @@ if __name__ == "__main__":
                 df_targetCodesInfo = pd.concat([df_targetCodesInfo, myWindow.readExcelToDataFrame(file_name, sheet_name)])
         df_targetCodesInfo.drop_duplicates(subset=['code'], keep='last') # code 중복 제거
 
-        # 대상 종목코드 현재가 받아오기, 조건에 맞다면 매수 진행
-
-
         while True: # 9시 30분 까지 진행
-            if datetime.datetime.now().hour == 9 and datetime.datetime.now().minute == 30:
+            if (datetime.datetime.now().hour == 9 and datetime.datetime.now().minute == 30):
                 time.sleep(10)
                 break
+            break
 
         while True: # 10 시 까지 또는 예수금이 모자르면 종료
             for idx, row in df_targetCodesInfo.iterrows():
@@ -454,15 +460,15 @@ if __name__ == "__main__":
                 print("code = {0}, 현재가 = {1}, 전일종가 = {4}, 날짜 = {2}, 전일날짜 = {3}".format(row['code'], now_price,
                                                                                        df_getStockInfo.at[1, '날짜'],
                                                                                        sheet_name, price_yesterday))
-                if True:
+                if True: # True 대신 가격 조건 부합했을 때, 진행
                     amount = buy_price // now_price
                     myWindow.buy_Stock(row['code'], amount, account_num)
                 else:
                     pass
                 time.sleep(0.2)
+            # 10 시에 트레이드 종료
             if datetime.datetime.now().hour == 10 and datetime.datetime.now().minute == 0:
                 break
-
         # myWindow.buy_Stock('005930', 1, '8038151811') # 매수
         # account_list = myWindow.get_account_info()
         # account_list = account_list.split(";")
