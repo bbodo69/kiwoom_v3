@@ -7,7 +7,6 @@ import os
 import warnings
 from datetime import datetime
 import exchange_calendars as ecals
-from setuptools._distutils.msvc9compiler import Reg
 
 ######## FutureWarring 방지 ########
 warnings.simplefilter(action='ignore', category=FutureWarning) # FutureWarning 제거
@@ -99,4 +98,8 @@ for url in url_world:
     plt.grid(color='gray', linestyle='--')
 
 leg = plt.legend(loc='upper left')
-plt.savefig('output/'+ str(df.loc[0, '날짜'])+'.png')
+
+path = 'C:/Users/zzang/Desktop/주식자료/지수비교'
+if not os.path.exists(path):
+    os.makedirs(path)
+plt.savefig('C:/Users/zzang/Desktop/주식자료/지수비교/'+ str(df.loc[0, '날짜'])+'.png')

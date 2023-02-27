@@ -14,11 +14,16 @@ warnings.simplefilter(action='ignore', category=FutureWarning) # FutureWarning �
 
 ######## 변수 ########
 headers = {'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36'}
-folder_path = "C:/Users/82107/Desktop/주식/" + datetime.now().strftime('%Y-%m-%d')
+folder_path = "output/" + datetime.now().strftime('%Y-%m-%d')
 code_filePath = "input/상장법인목록.xlsx"
 code_sheetName = "상장법인목록"
 
 ######## 사전준비 ########
+if not os.path.exists('output'):
+    try:
+        os.mkdir('output')
+    except OSError as error:
+        print(error)
 if not os.path.exists(folder_path):
     try:
         os.mkdir(folder_path)
@@ -56,8 +61,9 @@ for idx, row in df_codes.iterrows():
         df = df.sort_values(by='날짜')
         # 최근 30 일 데이터만 가져오기
         df[df['날짜'].isin(date_list)]
-
+    print(5)
     filepath = os.path.join(folder_path, code+'.xlsx')
+    print(6)
     if len(df) < 15:
         print(code)
     df.to_excel(filepath, index=False, sheet_name='sheet1')
