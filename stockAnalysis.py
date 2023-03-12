@@ -454,13 +454,13 @@ if __name__ == "__main__":
 
         # 시장현황 엑셀 데이터프레임 저장
         date = myWindow.calculateBusinessDay(0)
-        fileName = "C:/Users/zzang/Desktop/주식자료/MarketCondtion.xlsx"
+        fileName = "C:/Users/A/Desktop/주식자료/MarketCondtion.xlsx"
         sheetName = "Sheet1"
         df = pd.DataFrame([])
         df = myWindow.readExcelToDataFrame(fileName, sheetName)
 
-
         # 기존 현황 + 새 현황
+
         if not df.empty:
             df = df.append(
                 {
@@ -478,7 +478,7 @@ if __name__ == "__main__":
             df = pd.DataFrame([], columns=['날짜', '총', '종1', '종3', '종5', '종10', '종-1', '종-3', '종-5', '종-10'
                                             , '시1', '시3', '시5', '시10', '시-1', '시-3', '시-5', '시-10'
                                             , '고1', '고3', '고5', '고10', '고-1', '고-3', '고-5', '고-10'
-                                            , '저1', '저3', '저5', '저10', '저-1', '저-3', '저-5', '저-10'])
+                                            , '저1', '저3', '저5', '저10', '저-1', '저-3', '저-5', '저-10'], ignore_index=True)
             df = df.append(
                 {
                     '날짜': date, '총':countTotalStocks, '종1': countCodesUp1, '종3': countCodesUp3, '종5': countCodesUp5, '종10': countCodesUp10
@@ -494,13 +494,11 @@ if __name__ == "__main__":
 
 
         # df 타입 변경
-        df['날짜'] = pd.to_datetime(df['날짜'])
+        # df['날짜'] = pd.to_datetime(df['날짜'])
         df['종1'] = pd.to_numeric(df['종1'].astype(int))
         df['종-1'] = pd.to_numeric(df['종-1'].astype(int))
         print(df)
         # df.astype({'날짜': 'int32'}).dtypes
-
-        print(df.dtypes)
 
         # # 데이터 프레임 엑셀저장
         # df = df.drop_duplicates(subset=['날짜'], keep='last')
@@ -515,13 +513,26 @@ if __name__ == "__main__":
         # plot.xticks(range(len(df)), df["day_of_week"].values.tolist(), rotation=90, ha='right', fontsize=15)
 
         # ############ 삭제가능 ###############
-        plot.plot(df['날짜'], df['종1'], label="High", color='#0400ff')
-        plot.plot(df['날짜'], df['종-1'], label="Low", color='#ff0000')
-        plot.xticks(rotation=90, ha='right', fontsize=7)
+        df = df.tail(12)
+        df = df.reset_index(drop=True)
+        df = df.sort_values(by='날짜')
+        print(df)
+
+        # plot.plot(df['날짜'], df['종1'], label="High", color='#0400ff', marker='o')
+        # plot.plot(df['날짜'], df['종-1'], label="Low", color='#ff0000', marker='o')
+        plot.plot(df['날짜'], df['종1'], label="High")
+        plot.plot(df['날짜'], df['종-1'], label="Low")
+        # df["종1"].plot(kind='line', marker='o', color='#0400ff', figsize=(24, 15), fontsize=20, label = "High")
+        # df["종-1"].plot(kind='line', marker='o', color='#ff0000', figsize=(24, 15), fontsize=20, label = "Low")
+        plot.xticks(rotation=45, ha='right')
+
+
         # ############ 삭제가능 ###############
+        # plot.plot(df['날짜'], df['종1'], label="High", color='#0400ff', marker='o')
+        # plot.plot(df['날짜'], df['종-1'], label="Low", color='#ff0000', marker='o')
         plot.grid(color='grey', linestyle='--')
         plot.legend(loc='upper left')
-        plot.savefig("C:/Users/zzang/Desktop/주식자료/picture/MarketCondtion.png", dpi=200)
+        plot.savefig("C:/Users/A/Desktop/주식자료/picture/MarketCondtion.png")
 
         if datetime.datetime.now().hour < 19:
             os.system("shutdown -s -t 60")
